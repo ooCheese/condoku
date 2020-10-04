@@ -19,9 +19,9 @@ python based sudoku for your terminal
 
 ##Usage
 
-install python,
-install numpy
-run sudoku.py with python
+install python,  
+install numpy  
+run sudoku.py with python  
 ```bash
 python sudoku.py
 ```
