@@ -17,7 +17,7 @@ python based sudoku for your terminal
 
 ```
 
-##Usage
+## Usage
 
 install python,  
 install numpy  
