@@ -181,8 +181,7 @@ class Sudoku():
         x += direction[0]
         y += direction[1]
 
-        if not self.selectField(x,y) and x < len(self.fields) and y < len(self.fields):
-            self.selectInDirection(direction+1)
+        self.selectField(x,y)
 
     def selectLeft(self):
         self.selectInDirection(np.array([-1,0]))
@@ -232,10 +231,14 @@ class Sudoku():
                 input()
             elif lastInput == self.gotoCommand:
                 print("insert X Value:")
-                x  = int(input())
-                print("insert Y Value:")
-                y = int (input())
-                self.selectField(x,y)
+                try:
+                    x  = int(input())
+                    print("insert Y Value:")
+                    y = int (input())
+                    self.selectField(x,y)
+                except Exception as e:
+                    print("no vaild input, pls insert a integer, PRESS ANY KEY TO CONTINUE")
+                    input()
             elif lastInput.isdigit() and self.selectedField is not None:
                 num = int(lastInput)
                 self.selectedField.setNumber(num)
@@ -312,14 +315,6 @@ class Sudoku():
                     return False
 
         return True
-
-
-
-
-        
-
-
-
 
 if __name__ == "__main__":
     game = Sudoku(seed=1592111697)
