@@ -35,7 +35,7 @@ class Field():
 
 
     def __str__(self):
-        return label
+        return self.label
 
     def __format__(self, format_spec):
         
@@ -64,6 +64,7 @@ class Sudoku():
         self.selectedPositon = (0,0)
         self.selectedField = None
         self.showedNumbersAmount = showedNumbersAmount
+        self.solved = False
 
         self.fieldsInLine = fieldsInLine
         self.sectionsInLine = int(math.sqrt(self.fieldsInLine))
@@ -73,6 +74,10 @@ class Sudoku():
         else:
             self.seed = random.randrange(sys.maxsize)
         self.randomGen = random.Random(seed)
+
+        self.autoSolve = True
+
+        #Look
         self.borderLook = "|"
 
         #commands
@@ -87,6 +92,7 @@ class Sudoku():
         self.quitCommand = "QUIT"
 
         self.modeAutoSolveCommad = "AUTO_SOLVE"
+        self.autoFillField = "AUTO_FILL"
 
         self._initFields()
 
@@ -111,6 +117,8 @@ class Sudoku():
                 line.append(field)
                 i+= 1
             self.fields.append(line)
+        
+        self.selectField(0,0)
 
     def getFieldAsString(self):
         out = " "
@@ -190,10 +198,12 @@ class Sudoku():
 
     def startGameLoop(self):
         lastInput = ''
+        self.solved= False
 
-        while(lastInput != 'QUIT'):
+        while(lastInput != self.quitCommand and not self.solved):
             self.printField()
-            print("seed = {}".format(self.seed))
+
+            print("\nseed = {}".format(self.seed))
             print("(F) this Number is not editable [final], (<) this Number is selected")
             print("insert '{}' for a list of all commands, press Enter to confirm a command".format(self.helpCommand))
 
@@ -207,47 +217,60 @@ class Sudoku():
                 self.selectLeft()
             elif lastInput == self.goRightCommand:
                 self.selectRight()
+            elif lastInput == self.solveCommand:
+                if(self.compareWithSolution()):
+                    print("\n\nʕᵔᴥᵔʔ YOU HAVE SOLVED THE GAME ʕᵔᴥᵔʔ\n\n")
+                    self.solved = True
+                else:
+                    print("The Solution is wrong, PRESS ANY KEY TO CONTINUE")
+                    input()
             elif lastInput == self.helpCommand:
                 print("(W,A,S,D) jump to the [Up,Left,Down or Right] Field")
                 print("(GOTO) jump to a field by x and y value")
                 print("(1-9)[digit number] insert number to selected field")
+                print("PRESS ANY KEY TO CONTINUE")
+                input()
             elif lastInput == self.gotoCommand:
                 print("insert X Value:")
                 x  = int(input())
                 print("insert Y Value:")
                 y = int (input())
                 self.selectField(x,y)
-            elif lastInput.isdigit():
-                self.selectedField.setNumber(int(lastInput))
+            elif lastInput.isdigit() and self.selectedField is not None:
+                num = int(lastInput)
+                self.selectedField.setNumber(num)
+                if self.autoSolve:
+                    if self.solution[self.selectedPositon[1],self.selectedPositon[0]] == num:
+                        self.selectedField.editable = False
+
+    def compareWithSolution(self):    
+        for line,comLine in zip(self.fields,self.solution):
+            for field,cf in zip(line,comLine):
+                #print(field.number,cf)
+                if field.number != cf:
+                    return False
+        return True
 
     def generateField(self,fieldsAmount,seed=None):
-         
         self.solution = np.zeros((fieldsAmount,fieldsAmount),dtype=int)
-        self.soultion = self.generateNumber(0,list(range(1,10)),self.solution)
-        print(self.soultion)
-
-
+        self.solution = self.generateNumber(0,list(range(1,10)),self.solution)
 
     def generateNumber(self,i,possNumbers,field):
-
         if i == np.size(field):
             return field
-
         if len(possNumbers) == 0:
             return None
 
         num = possNumbers[self.randomGen.randint(0,len(possNumbers)-1)]
-
         y = i//9
         x = i %9
 
         if self.checkNumber(num,x,y,field):
             field[y][x] = num
             nf = self.generateNumber(i+1,list(range(1,10)),field)
-
             if nf is not None:
                 return nf
-        
+
         possNumbers.remove(num)
         return self.generateNumber(i,possNumbers,field)
 
